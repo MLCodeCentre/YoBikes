@@ -70,8 +70,8 @@ def plotLinksBetweenClusters():
 
 def plotClusters(df):
     dist = 3
-    df_centre = df[df['Begin_Distance'] < dist]
-    df_centre = df_centre[df_centre['End_Distance'] < dist]
+    #df_centre = df[df['Begin_Distance'] < dist]
+    #df_centre = df_centre[df_centre['End_Distance'] < dist]
     df_centre = df_centre[df_centre['Speed'] > 0]
     #df_centre = df_centre[df_centre['Speed'] < 100]
     #df_centre = df_centre.head(100)
