@@ -19,21 +19,21 @@ def plotLinksBetweenClusters():
     m = folium.Map([51.4545, -2.58], zoom_start=13)
     cluster_paths = json.load(open('Data/cluster_paths.json'))
     
-    print(cluster_df)
+    #print(cluster_df)
 
     for cluster_origin in range(1,196):
         
         cluster_origin_info = cluster_df[cluster_df['Cluster_Number']==cluster_origin]
-        print(int(cluster_origin_info['Cluster_Members']))
+        #print(int(cluster_origin_info['Cluster_Members']))
         radius = float((15*cluster_origin_info['Cluster_Members']/2000))
         #print(radius)
         origin_lat = float(cluster_origin_info['Lat'])
         origin_lng = float(cluster_origin_info['Lng'])
-     
+              
         folium.CircleMarker(location=[origin_lat, origin_lng],
                             radius=radius,
-                            color='#3186cc',
-                            fill_color='#3186cc',
+                            color=color,
+                            fill_color=color,
                             tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, str(int(cluster_origin_info['Cluster_Members'])))).add_to(m)
         folium.Marker([origin_lat, origin_lng],
                       icon=DivIcon(
@@ -83,19 +83,27 @@ def plotClusters():
     for cluster_origin in range(1,101):
         
         cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
-        print(cluster_origin_info)
+        #print(cluster_origin_info)
         
         trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
-        radius = float((15*trip_start_and_ends/15000))
-        print(trip_start_and_ends)
+        #radius = float((15*trip_start_and_ends/15000))
+        radius = 10
+        #print(trip_start_and_ends)
         #print(radius)
         origin_lat = float(cluster_origin_info['Cluster_Lat'])
         origin_lng = float(cluster_origin_info['Cluster_Lng'])
+        
+        if float(cluster_origin_info['Cluster_End_Number']) > float(cluster_origin_info['Cluster_Begin_Number']):
+            color ='#3186cc'
+        else:
+            color = '#cc3139'
+        
+        #print(color)
      
         folium.CircleMarker(location=[origin_lat, origin_lng],
                             radius=radius,
-                            color='#3186cc',
-                            fill_color='#3186cc',
+                            color=color,
+                            fill_color=color,
                             tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, str(trip_start_and_ends))).add_to(m)
         folium.Marker([origin_lat, origin_lng],
                       icon=DivIcon(
