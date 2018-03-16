@@ -8,6 +8,8 @@ from progress.bar import Bar
 from sklearn.cluster import KMeans
 import googlemaps
 import json
+from scipy.spatial import Voronoi, voronoi_plot_2d
+from geopy.distance import vincenty
 
 def plotLinksBetweenClusters():
 
@@ -16,13 +18,15 @@ def plotLinksBetweenClusters():
     cluster_df = pd.read_csv('Data/clusters.csv')
     m = folium.Map([51.4545, -2.58], zoom_start=13)
     cluster_paths = json.load(open('Data/cluster_paths.json'))
-   
+    
+    print(cluster_df)
 
-    for cluster_origin in range(0,29):
+    for cluster_origin in range(1,196):
         
-        cluster_origin_info = cluster_df[cluster_df['Cluster']==cluster_origin]
-        radius = float((15*cluster_origin_info['Num']/15000))
-        print(radius)
+        cluster_origin_info = cluster_df[cluster_df['Cluster_Number']==cluster_origin]
+        print(int(cluster_origin_info['Cluster_Members']))
+        radius = float((15*cluster_origin_info['Cluster_Members']/2000))
+        #print(radius)
         origin_lat = float(cluster_origin_info['Lat'])
         origin_lng = float(cluster_origin_info['Lng'])
      
@@ -30,7 +34,7 @@ def plotLinksBetweenClusters():
                             radius=radius,
                             color='#3186cc',
                             fill_color='#3186cc',
-                            tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, int(cluster_origin_info['Num']))).add_to(m)
+                            tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, str(int(cluster_origin_info['Cluster_Members'])))).add_to(m)
         folium.Marker([origin_lat, origin_lng],
                       icon=DivIcon(
                       icon_size=(150,36),
@@ -41,8 +45,8 @@ def plotLinksBetweenClusters():
         
         ODM_Cluster = ODM[cluster_origin, :]
         for cluster_dest, weight in enumerate(ODM_Cluster):
-            if weight > 0.005:
-                cluster_dest_info = cluster_df[cluster_df['Cluster']==cluster_dest]
+            if weight > 0.5:
+                cluster_dest_info = cluster_df[cluster_df['Cluster_Number']==cluster_dest]
 
                 dest_lat = float(cluster_dest_info['Lat'])
                 dest_lng = float(cluster_dest_info['Lng'])
@@ -55,7 +59,7 @@ def plotLinksBetweenClusters():
                     KeyError
                     print('Google')
                     points = getWayPoints((origin_lat, origin_lng), (dest_lat, dest_lng))
-                    cluster_paths[key] = points
+                    cluster_paths[key] = pointsacti
                 
                 opacity = weight/0.01
                 folium.PolyLine(points,
@@ -68,71 +72,53 @@ def plotLinksBetweenClusters():
         json.dump(cluster_paths, outfile)
            
 
-def plotClusters(df):
-    dist = 3
-    #df_centre = df[df['Begin_Distance'] < dist]
-    #df_centre = df_centre[df_centre['End_Distance'] < dist]
-    df_centre = df_centre[df_centre['Speed'] > 0]
-    #df_centre = df_centre[df_centre['Speed'] < 100]
-    #df_centre = df_centre.head(100)
-    print('Parsing lats and lngs')
-    co_ords_Begin = [[row.Begin_Lat, row.Begin_Lng] for idx, row in df_centre.iterrows()]
-    co_ords_End = [[row.End_Lat, row.End_Lng] for idx, row in df_centre.iterrows()]
-    co_ords = co_ords_Begin + co_ords_End
-    co_ords = np.array(co_ords)
+def plotClusters():
     
-    print('Performing KMeans')
-    kmeans = KMeans(n_clusters=30, random_state=0).fit(co_ords)
-    centroids = kmeans.cluster_centers_.tolist()
+    cluster_df = pd.read_csv('Data/clusters.csv')
+    print('{} Trip Start and Ends found'.format(cluster_df['Cluster_Begin_End_Number'].sum()))
     m = folium.Map([51.4545, -2.58], zoom_start=13)
-    
-    inds = []
-    centroid_lats = []
-    centroid_lngs = []
-    nums = []
-    for ind, (lat, lng) in enumerate(centroids):
-        num_elements = len([label for label in kmeans.labels_ if label == ind])
-        inds.append(ind)
-        centroid_lats.append(lat)
-        centroid_lngs.append(lng)
-        nums.append(num_elements)
+       
+    print('plotting clusters')
+   
+    for cluster_origin in range(1,101):
         
-        print(ind, num_elements)
-        folium.CircleMarker(location=[lat, lng], radius=15*num_elements/15000,
-                    color='#3186cc',
-                    fill_color='#3186cc',
-                    tooltip = 'Cluster {}: {} Journeys'.format(str(ind), str((num_elements)))).add_to(m)
+        cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
+        print(cluster_origin_info)
+        
+        trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
+        radius = float((15*trip_start_and_ends/15000))
+        print(trip_start_and_ends)
+        #print(radius)
+        origin_lat = float(cluster_origin_info['Cluster_Lat'])
+        origin_lng = float(cluster_origin_info['Cluster_Lng'])
+     
+        folium.CircleMarker(location=[origin_lat, origin_lng],
+                            radius=radius,
+                            color='#3186cc',
+                            fill_color='#3186cc',
+                            tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, str(trip_start_and_ends))).add_to(m)
+        folium.Marker([origin_lat, origin_lng],
+                      icon=DivIcon(
+                      icon_size=(150,36),
+                      icon_anchor=(0,0),
+                      html='<div style="font-size: 12pt; font-weight: bold">{}</div>'.format(str(cluster_origin)),
+                            )
+                      ).add_to(m)
+                        
+    print('calculating polygons')
+    points = [[float(cluster['Cluster_Lat']), float(cluster['Cluster_Lng'])] for ind, cluster in cluster_df.iterrows()]
+    vor = Voronoi(points)
+    print('drawing polygons')
+    bristol_centre = ((51.454514, -2.587910))
+    for vpair in vor.ridge_vertices:
+        if vpair[0] >= 0 and vpair[1] >= 0:
+            v0 = vor.vertices[vpair[0]]
+            v1 = vor.vertices[vpair[1]]
+            if vincenty(v0, bristol_centre).km < 10 and vincenty(v1, bristol_centre).km < 10:
+            # Draw a line from v0 to v1.
+                folium.PolyLine([v0,v1], opacity = 0.7).add_to(m)
     
-    m.save('Maps/Centroids.html')
-    
-    # saving centroid information
-    centroid_df = pd.DataFrame(
-    {'Cluster': inds,
-     'Lat': centroid_lats,
-     'Lng': centroid_lngs,
-     'Num': nums
-    })
-    
-    centroid_df.to_csv('Data/clusters.csv')
-    
-    print('Calculating cluster memberships for Begining and End positions')
-    # assigning each begin and end in df to cluster
-    #df = df.head(10)
-    Begin_lats = df['Begin_Lat']
-    Begin_lngs = df['Begin_Lng']
-    End_lats = df['End_Lat']
-    End_lngs = df['End_Lng']
-    
-    Begin_coords = np.array([[lat, lng] for lat, lng in zip(Begin_lats, Begin_lngs)])
-    Begin_clusters = kmeans.predict(Begin_coords)
-    df['Begin_Cluster'] = Begin_clusters
-    
-    End_coords = np.array([[lat, lng] for lat, lng in zip(End_lats, End_lngs)])
-    End_clusters = kmeans.predict(End_coords)
-    df['End_Cluster'] = End_clusters
-    #print(df)
-    df.to_csv('Data/date_formatted_clustered_bike_data.csv')
- 
+    m.save('Maps/Clusters.html') 
 
 def plotDifferenecesonMap():
 
@@ -333,8 +319,8 @@ def main():
     #df = df[df['End_Distance'] > 3]
     #plotUsedRoads(df)
     #plotDifferenecesonMap()
-    #plotClusters(df)
-    plotLinksBetweenClusters()
+    plotClusters()
+    #plotLinksBetweenClusters()
 
 if __name__ == '__main__':
     main()

@@ -130,20 +130,20 @@ def plotTripHistInsideCentre(df, distance):
 def main():
 
     formatDates()
-    data_file = 'Data/date_formatted_bike_data.csv'
-    df = pd.read_csv(data_file)
+    # data_file = 'Data/date_formatted_bike_data.csv'
+    # df = pd.read_csv(data_file)
     
-    # showing usageage histogram
-    df = df[df['Duration'] < 120]
-    df = df[df['Duration'] > 5]
+    # # showing usageage histogram
+    # df = df[df['Duration'] < 120]
+    # df = df[df['Duration'] > 5]
     
-    print(df.head())
+    # print(df.head())
     #plotTripHistOutsideCentre(df,3)
     #plotTripHistInsideCentre(df,3)
     #plotDistancesFromCentre(df)
     #plotHourBarPlot(df)
     #plotMapOverTime(df)
-    plt.show()
+    #plt.show()
 
 
 if __name__ == '__main__':

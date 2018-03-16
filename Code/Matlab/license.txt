@@ -1,4 +1,4 @@
-Copyright (c) 2012, M Sohrabinia
+Copyright (c) 2018, Sebastien De Landtsheer
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
