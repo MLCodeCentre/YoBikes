@@ -1,8 +1,6 @@
-function [clustered_data, C] = createClusters(Data)
+function C = createClusters()
 
-if isempty(Data)
-    Data = readtable('yoBikeDataClean.csv');
-end
+Data = readtable('yoBikeDataClean.csv');
 
 disp(['There are ',num2str(size(Data,1)), ' Data Rows in yoBikeDataClean.csv'])
 
@@ -40,5 +38,6 @@ End_Cluster = kmeans(End_Coords,K,'Start',C);
 
 clustered_data = [Data, table(Begin_Cluster, End_Cluster)];
 Data_dir = fullfile(rootDir(),'Data');
-writetable(clustered_data, fullfile(Data_dir, 'yoBikeDataCleanClustered.csv'))   
+writetable(clustered_data, fullfile(Data_dir, 'yoBikeDataCleanClustered.csv'))
+disp(['Saved cleaned Data with cluster information with ',num2str(size(clustered_data,1)),' trips to yoBikeDataCleanClustered.csv'])
     

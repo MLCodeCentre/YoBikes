@@ -94,9 +94,9 @@ clean_Data = Data;
 % colorbar;
 
 
-%Data_dir = fullfile(rootDir(),'Data');
-%writetable(Data,fullfile(Data_dir, 'yoBikeDataClean.csv'))
-%disp('Saved clean data to Data/yoBikeDataClean.csv')
+Data_dir = fullfile(rootDir(),'Data');
+writetable(Data,fullfile(Data_dir, 'yoBikeDataClean.csv'))
+disp('Saved clean data to Data/yoBikeDataClean.csv')
 
 
 
