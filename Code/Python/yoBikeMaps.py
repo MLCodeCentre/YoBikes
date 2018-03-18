@@ -9,6 +9,7 @@ from sklearn.cluster import KMeans
 import googlemaps
 import json
 
+
 def plotLinksBetweenClusters():
 
     ODM = loadmat('Data/ODM_norm_mirror.mat')
@@ -183,6 +184,7 @@ def plotDifferenecesonMap():
     bar.finish()
     m.save('Maps/Differences.html')
 
+
 def plotSumsonMap():
 
     m = folium.Map([51.4545, -2.58], zoom_start=13)
@@ -241,6 +243,7 @@ def plotMapOverTime(df):
 
     m.save("Maps/HeatMap.html")
 
+
 def getWayPoints(start, end):
    
     gmaps = googlemaps.Client(key='AIzaSyAC8KbHeJUsgG1h4qMcEAFjKHFd61mQSHo')
@@ -258,6 +261,7 @@ def getWayPoints(start, end):
         IndexError
 
     return points
+
     
 def plotUsedRoads(df):
 

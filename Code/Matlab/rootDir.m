@@ -6,5 +6,5 @@ function path = rootDir()
 % the computer. 
 % Outputs:
 %   path string. Top level directory.
-    path = 'C:\Users\ts1454\YoBikes';
+    path = '/home/tom/PhD/YoBikes/';
 end
