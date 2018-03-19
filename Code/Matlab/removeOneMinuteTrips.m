@@ -5,6 +5,10 @@ size_before = size(data,1);
 d=0.2;
 short_intra_trips = (data.Distance<d & data.End_Cluster==data.Begin_Cluster);
 cleanData = data(~short_intra_trips,:);
+
+impossible_speeds = cleanData.Speed > 15;
+cleanData = cleanData(~impossible_speeds,:);
+
 disp(['Size of Data after removing intracluster trips shorter than 0.2km: ',' ',num2str(size(cleanData,1))])
 disp(['Removed',' ',num2str(size_before-size(cleanData,1)),' ','rows'])
 disp(' ')

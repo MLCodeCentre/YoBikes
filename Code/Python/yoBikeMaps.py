@@ -73,10 +73,31 @@ def plotLinksBetweenClusters():
         json.dump(cluster_paths, outfile)
            
 
-def plotClusters():
+def generateHTML(cluster_origin, trip_start_and_ends, cluster_type, difference, lat, lng):
+
+    url = "http://maps.google.com/maps?q=&layer=c&cbll={},{}&cbp=11,0,0,0,0".format(lat,lng)
+
+    html="""
+    <h3>Cluster {}</h3>
+    <p>
+    Total trips: <b>{}</b><br>
+    {} size: <b>{}</b>
+    </p>
+    <a href={}>Google street view</a>
+    """.format(cluster_origin, trip_start_and_ends, cluster_type, difference,url)
+    return html
+    
+
+def plotClusterDifferences():
     
     cluster_df = pd.read_csv('Data/clusters.csv')
     print('{} Trip Start and Ends found'.format(cluster_df['Cluster_Begin_End_Number'].sum()))
+    print('And Therefore {} Trips found'.format(str(cluster_df['Cluster_Begin_End_Number'].sum()/2)))
+
+
+    ODM = loadmat('Data/ODM.mat')
+    ODM = np.array(ODM['ODM'])
+
     m = folium.Map([51.4545, -2.58], zoom_start=13)
        
     print('plotting clusters')
@@ -86,26 +107,45 @@ def plotClusters():
         cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
         #print(cluster_origin_info)
         
-        trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
-        #radius = float((15*trip_start_and_ends/15000))
-        radius = 10
-        #print(trip_start_and_ends)
-        #print(radius)
         origin_lat = float(cluster_origin_info['Cluster_Lat'])
         origin_lng = float(cluster_origin_info['Cluster_Lng'])
+
+        bikes_leaving_cluster = int(cluster_origin_info['Cluster_Begin_Number'])
+        bikes_arriving_cluster = int(cluster_origin_info['Cluster_End_Number'])
         
-        if float(cluster_origin_info['Cluster_End_Number']) > float(cluster_origin_info['Cluster_Begin_Number']):
+        total = bikes_arriving_cluster + bikes_leaving_cluster
+        difference = bikes_arriving_cluster - bikes_leaving_cluster
+
+        if difference > 0:
             color ='#3186cc'
+            cluster_type = 'Sink'
         else:
             color = '#cc3139'
+            cluster_type = 'Source'
+
+        circle_opacity = min(0.9,(abs(difference)/500))
+        radius = 20*np.sqrt((abs(total)/10000))
+        print(difference, circle_opacity, total, radius)
         
-        #print(color)
+        trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
+        # text = 'Cluster {}, {} Trip End or Starts. {} size {}'.format(str(cluster_origin), str(trip_start_and_ends),
+                                                                        #cluster_type, str(difference))
+
+        html = generateHTML(cluster_origin, total, cluster_type, difference, origin_lat, origin_lng)
+
+        #iframe = folium.element.IFrame(html=html, width=500, height=300)
+        #popup = folium.Popup(iframe, max_width=2650)
+
+        
+        #print(text)
      
         folium.CircleMarker(location=[origin_lat, origin_lng],
                             radius=radius,
-                            color=color,
+                            color='#101010',
+                            fill=True,
                             fill_color=color,
-                            tooltip = 'Cluster {}, {} Trip End or Starts'.format(cluster_origin, str(trip_start_and_ends))).add_to(m)
+                            popup = html,
+                            fill_opacity = circle_opacity).add_to(m)
         folium.Marker([origin_lat, origin_lng],
                       icon=DivIcon(
                       icon_size=(150,36),
@@ -115,6 +155,7 @@ def plotClusters():
                       ).add_to(m)
                         
     print('calculating polygons')
+
     points = [[float(cluster['Cluster_Lat']), float(cluster['Cluster_Lng'])] for ind, cluster in cluster_df.iterrows()]
     vor = Voronoi(points)
     print('drawing polygons')
@@ -123,11 +164,13 @@ def plotClusters():
         if vpair[0] >= 0 and vpair[1] >= 0:
             v0 = vor.vertices[vpair[0]]
             v1 = vor.vertices[vpair[1]]
+            v0 = [float(v) for v in v0]
+            v1 = [float(v) for v in v1]
             if vincenty(v0, bristol_centre).km < 10 and vincenty(v1, bristol_centre).km < 10:
             # Draw a line from v0 to v1.
-                folium.PolyLine([v0,v1], opacity = 0.7).add_to(m)
+                folium.PolyLine(([v0,v1]), opacity = 0.4, color='#101010').add_to(m)
     
-    m.save('Maps/Clusters.html') 
+    m.save('Maps/ClusterSinkSource.html') 
 
 def plotDifferenecesonMap():
 
@@ -331,7 +374,7 @@ def main():
     #df = df[df['End_Distance'] > 3]
     #plotUsedRoads(df)
     #plotDifferenecesonMap()
-    plotClusters()
+    plotClusterDifferences()
     #plotLinksBetweenClusters()
 
 if __name__ == '__main__':
