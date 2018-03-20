@@ -102,7 +102,7 @@ def plotClusterDifferences():
        
     print('plotting clusters')
    
-    for cluster_origin in range(1,101):
+    for cluster_origin in range(1,267):
         
         cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
         #print(cluster_origin_info)
@@ -124,7 +124,7 @@ def plotClusterDifferences():
             cluster_type = 'Source'
 
         circle_opacity = min(0.9,(abs(difference)/500))
-        radius = 20*np.sqrt((abs(total)/10000))
+        radius = min(20,20*np.sqrt((abs(total)/3000)))
         print(difference, circle_opacity, total, radius)
         
         trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
