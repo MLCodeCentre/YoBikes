@@ -1,7 +1,7 @@
 function clusterDistances
 
 clusterData = readtable('clusters.csv');
-k = 100;
+k = 293;
 Distances = zeros(k,k);
 
 for cluster1 = 1:k

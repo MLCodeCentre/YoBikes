@@ -11,6 +11,67 @@ import json
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from geopy.distance import vincenty
 
+def plotClusterAndPolygons():
+    
+    cluster_df = pd.read_csv('Data/clusters.csv')
+    print('{} Trip Start and Ends found'.format(cluster_df['Cluster_Begin_End_Number'].sum()))
+    print('And Therefore {} Trips found'.format(str(cluster_df['Cluster_Begin_End_Number'].sum()/2)))
+    cluster_type_df = pd.read_csv('Data/cluster_types.csv')
+    
+    colors = {'1': 	'#FF0000',
+              '2':  '#008000',
+              '3':  '#0000FF',
+              '4':  '#FF00FF',
+              '5':  '#800080'}
+    
+    ODM = loadmat('Data/ODM.mat')
+    ODM = np.array(ODM['ODM'])
+
+    m = folium.Map([51.4545, -2.58], zoom_start=13)
+       
+    print('plotting clusters')
+   
+    for cluster_origin in range(1,293):
+        
+        cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
+        cluster_type_info = cluster_type_df[cluster_type_df['Var1']==cluster_origin]
+        cluster_type = str(int((cluster_type_info['cluster_type'])))
+        print(cluster_type)
+        color = colors[cluster_type]
+        origin_lat = float(cluster_origin_info['Cluster_Lat'])
+        origin_lng = float(cluster_origin_info['Cluster_Lng'])
+
+     
+        folium.CircleMarker(location=[origin_lat, origin_lng],
+                            color=color,
+                            fill=True,
+                            fill_color=color).add_to(m)
+        
+        folium.Marker([origin_lat, origin_lng],
+                      icon=DivIcon(
+                      icon_size=(150,36),
+                      icon_anchor=(0,0),
+                      html='<div style="font-size: 12pt; font-weight: bold">{}</div>'.format(str(cluster_origin)),
+                            )
+                      ).add_to(m)
+                        
+    print('calculating polygons')
+
+    points = [[float(cluster['Cluster_Lat']), float(cluster['Cluster_Lng'])] for ind, cluster in cluster_df.iterrows()]
+    vor = Voronoi(points)
+    print('drawing polygons')
+    bristol_centre = ((51.454514, -2.587910))
+    for vpair in vor.ridge_vertices:
+        if vpair[0] >= 0 and vpair[1] >= 0:
+            v0 = vor.vertices[vpair[0]]
+            v1 = vor.vertices[vpair[1]]
+            v0 = [float(v) for v in v0]
+            v1 = [float(v) for v in v1]
+            if vincenty(v0, bristol_centre).km < 10 and vincenty(v1, bristol_centre).km < 10:
+            # Draw a line from v0 to v1.
+                folium.PolyLine(([v0,v1]), opacity = 0.4, color='#101010').add_to(m)
+    
+    m.save('Maps/Clusters.html') 
 
 def plotLinksBetweenClusters():
 
@@ -22,7 +83,7 @@ def plotLinksBetweenClusters():
     
     #print(cluster_df)
 
-    for cluster_origin in range(1,196):
+    for cluster_origin in range(1,293):
         
         cluster_origin_info = cluster_df[cluster_df['Cluster_Number']==cluster_origin]
         #print(int(cluster_origin_info['Cluster_Members']))
@@ -75,7 +136,8 @@ def plotLinksBetweenClusters():
 
 def generateHTML(cluster_origin, trip_start_and_ends, cluster_type, difference, lat, lng):
 
-    url = "http://maps.google.com/maps?q=&layer=c&cbll={},{}&cbp=11,0,0,0,0".format(lat,lng)
+    google_url = "http://maps.google.com/maps?q=&layer=c&cbll={},{}&cbp=11,0,0,0,0".format(lat,lng)
+    graph_url = "file:///C:/Users/ts1454/YoBikes/Images/Connection%20Distributions/{}.png".format(cluster_origin)
 
     html="""
     <h3>Cluster {}</h3>
@@ -84,9 +146,10 @@ def generateHTML(cluster_origin, trip_start_and_ends, cluster_type, difference, 
     {} size: <b>{}</b>
     </p>
     <a href={}>Google street view</a>
-    """.format(cluster_origin, trip_start_and_ends, cluster_type, difference,url)
+    <a href={}>Connection Distribution</a>
+    """.format(cluster_origin, trip_start_and_ends, cluster_type, difference, google_url, graph_url, graph_url)
     return html
-    
+   
 
 def plotClusterDifferences():
     
@@ -102,7 +165,7 @@ def plotClusterDifferences():
        
     print('plotting clusters')
    
-    for cluster_origin in range(1,267):
+    for cluster_origin in range(1,293):
         
         cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
         #print(cluster_origin_info)
@@ -369,11 +432,12 @@ def decode_polyline(polyline_str):
     
     
 def main():
-    data_file = 'Data/date_formatted_bike_data.csv'
-    df = pd.read_csv(data_file)
+    #data_file = 'Data/date_formatted_bike_data.csv'
+    #df = pd.read_csv(data_file)
     #df = df[df['End_Distance'] > 3]
     #plotUsedRoads(df)
     #plotDifferenecesonMap()
+    #plotClusterAndPolygons()
     plotClusterDifferences()
     #plotLinksBetweenClusters()
 

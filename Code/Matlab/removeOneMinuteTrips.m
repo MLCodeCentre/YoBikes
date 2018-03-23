@@ -2,16 +2,21 @@ function cleanData = removeOneMinuteTrips()
 
 data = readtable('yoBikeDataCleanClustered.csv');
 size_before = size(data,1);
-d=0.2;
-short_intra_trips = (data.Distance<d & data.End_Cluster==data.Begin_Cluster);
+
+short_intra_trips = (data.End_Cluster==data.Begin_Cluster);
 cleanData = data(~short_intra_trips,:);
-
-impossible_speeds = cleanData.Speed > 15;
-cleanData = cleanData(~impossible_speeds,:);
-
-disp(['Size of Data after removing intracluster trips shorter than 0.2km: ',' ',num2str(size(cleanData,1))])
-disp(['Removed',' ',num2str(size_before-size(cleanData,1)),' ','rows'])
 disp(' ')
+disp(['Size of Data after removing intracluster trips: ',' ',num2str(size(cleanData,1))])
+disp(['Removed',' ',num2str(sum(short_intra_trips)),' ','rows'])
+disp(' ')
+
+impossible_speeds = cleanData.Speed > 20;
+cleanData = cleanData(~impossible_speeds,:);
+disp(' ')
+disp(['Size of Data after removing impossible speeds: ',' ',num2str(size(cleanData,1))])
+disp(['Removed',' ',num2str(sum(impossible_speeds)),' ','rows'])
+disp(' ')
+
 Data_dir = fullfile(rootDir(),'Data');
 writetable(cleanData, fullfile(Data_dir, 'yoBikeDataCleanClusteredNoIntra.csv'))
 disp('Saved cleaned Data with no intracluster trips to yoBikeDataCleanClusteredNoIntra.csv')
