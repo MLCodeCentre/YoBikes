@@ -2,7 +2,7 @@ function plotProfiles(Data)
 
 %data = readtable('date_formatted_bike_data.csv');
 if isempty(Data)
-    Data = readtable('date_formatted_bike_data.csv');
+    Data = readtable('C:\Users\ts1454\YoBikes\Data\yoBikeDataCleanClusteredNoIntaNewClusters.csv');
 end
 
 close all;

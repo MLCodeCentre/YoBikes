@@ -2,11 +2,13 @@ function createClusterFeatures
 
 ODM_Load = load('ODM.mat');
 ODM = ODM_Load.ODM;
-cluster_connections = zeros(100,100);
+clusters = 293;
+cluster_connections = zeros(clusters,clusters);
+non_zero_variances;
 
-K = 1:100;
+K = 1:clusters;
 for k = K
- 
+    k
     % summing all journeys from K to all and from all to k
     cluster_connections(k,:) = ODM(k,:) + ODM(:,k)';
     
@@ -17,7 +19,7 @@ for k = K
     
     % now normalising across the row. Hence giving a percentage connection
     % score between k and each other cluster
-    cluster_connections(k,:) = cluster_connections(k,:)./sum(cluster_connections(k,:));
+    cluster_connections(k,:) = sort(cluster_connections(k,:)./sum(cluster_connections(k,:)),'DESCEND');
     
     
 end

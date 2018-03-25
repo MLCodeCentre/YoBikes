@@ -8,14 +8,14 @@ lats = [Data.Begin_Lat; Data.End_Lat];
 lngs = [Data.Begin_Lng; Data.End_Lng];
 X = [lats, lngs];
 
-% Code below used to find the optimal number of clusters is 52.
-% k_min = 20;
-% k_max = 200;
+% %Code below used to find the optimal number of clusters is 52.
+% k_min = 270;
+% k_max = 300;
 % clusts = zeros(size(X,1),k_max-k_min);
 % 
 % for k = k_min:k_max
 %     k
-%     [IDX, C, SUMD] = kmeans(X, k, 'emptyaction','singleton', 'replicate',5);
+%     [IDX, C, SUMD] = kmeans(X, k, 'emptyaction','singleton', 'replicate',3);
 %     clusts(:, k+1-k_min) = IDX;
 %     
 % end
@@ -23,7 +23,9 @@ X = [lats, lngs];
 % eva = evalclusters(X,clusts,'CalinskiHarabasz')
 % opt_num_clusters = eva.OptimalK
 
+
 % the best is 100
+
 K = 293;
 disp(['Performing Kmeans with ',' ',num2str(K),' ','Clusters']);
 disp(' ')
@@ -40,4 +42,4 @@ clustered_data = [Data, table(Begin_Cluster, End_Cluster)];
 Data_dir = fullfile(rootDir(),'Data');
 writetable(clustered_data, fullfile(Data_dir, 'yoBikeDataCleanClustered.csv'))
 disp(['Saved cleaned Data with cluster information with ',num2str(size(clustered_data,1)),' trips to yoBikeDataCleanClustered.csv'])
-    
+%     
