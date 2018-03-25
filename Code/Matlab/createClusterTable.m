@@ -4,7 +4,7 @@ disp('createClusterTable.m')
 disp('Data/Loading yoBikeDataCleanClusteredNoIntra.csv')
 Data = readtable('yoBikeDataCleanClusteredNoIntra.csv');
 
-K = 100;
+K = 293;
 % create start and end columns for data
 Begin_Coords = [Data.Begin_Lat, Data.Begin_Lng];
 End_Coords = [Data.End_Lat, Data.End_Lng];

@@ -3,9 +3,10 @@ function ODMatrix(Data)
 if isempty(Data)
     Data = readtable('yoBikeDataCleanClusteredNoIntaNewClusters.csv');
 end
+k = 293;
 Data = Data(:,{'Begin_Cluster', 'End_Cluster'});
-ODM = zeros(100,100);
-BeginEnd = zeros(100,2);
+ODM = zeros(k,k);
+BeginEnd = zeros(k,2);
 
 disp(['Calculating OD Matrix for ', num2str(size(Data,1)), ' trips'])
 

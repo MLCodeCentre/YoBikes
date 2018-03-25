@@ -24,7 +24,7 @@ X = [lats, lngs];
 % opt_num_clusters = eva.OptimalK
 
 % the best is 100
-K = 100;
+K = 293;
 disp(['Performing Kmeans with ',' ',num2str(K),' ','Clusters']);
 disp(' ')
 [IDX, C] = kmeans(X, K, 'emptyaction','singleton');
