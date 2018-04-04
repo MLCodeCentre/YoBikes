@@ -11,7 +11,7 @@ total = size(Data,1);
 
 ylimits=get(gca,'ylim');
 xlimits=get(gca,'xlim');
-text(xlimits(2)*0.5, ylimits(2)*0.9, strcat(['Total: ',num2str(total)]))
-text(xlimits(2)*0.5, ylimits(2)*0.85, strcat(['Bin width: ', num2str(width), ' ',  Unit]))
+text(xlimits(2)*0.6, ylimits(2)*0.9, strcat(['Total: ', num2str(total)]))
+text(xlimits(2)*0.6, ylimits(2)*0.85, strcat(['Bin width: ', num2str(width), ' ',  Unit]))
     
     
