@@ -2,7 +2,7 @@ function myHist(Data, BinRange, x_label, Unit)
 
 Xcts = hist(Data, BinRange);
 bar(BinRange, Xcts)
-xlim([min(BinRange)-5, max(BinRange)+5])
+%xlim([min(BinRange)-5, max(BinRange)+5])
 ylabel('Frequency')
 xlabel(strcat(x_label))
 

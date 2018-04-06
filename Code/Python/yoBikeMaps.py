@@ -134,6 +134,21 @@ def plotLinksBetweenClusters():
         json.dump(cluster_paths, outfile)
            
 
+def generateDecayHTML(cluster_origin, trip_start_and_ends, lat, lng):
+
+    google_url = "http://maps.google.com/maps?q=&layer=c&cbll={},{}&cbp=11,0,0,0,0".format(lat,lng)
+    graph_url = "file:///C:/Users/ts1454/YoBikes/Images/Connection%20Distributions/{}.png".format(cluster_origin)
+
+    html="""
+    <h3>Cluster {}</h3>
+    <p>
+    Total trips: <b>{}</b><br>
+    </p>
+    <a href={}>Google street view</a>
+    <a href={}>Connection Distribution</a>
+    """.format(cluster_origin, trip_start_and_ends, google_url, graph_url)
+    return html
+           
 def generateHTML(cluster_origin, trip_start_and_ends, cluster_type, difference, lat, lng):
 
     google_url = "http://maps.google.com/maps?q=&layer=c&cbll={},{}&cbp=11,0,0,0,0".format(lat,lng)
@@ -149,7 +164,78 @@ def generateHTML(cluster_origin, trip_start_and_ends, cluster_type, difference, 
     <a href={}>Connection Distribution</a>
     """.format(cluster_origin, trip_start_and_ends, cluster_type, difference, google_url, graph_url, graph_url)
     return html
-   
+
+
+def plotClusterDecays():
+    
+    cluster_df = pd.read_csv('Data/clusters.csv')
+    print('{} Trip Start and Ends found'.format(cluster_df['Cluster_Begin_End_Number'].sum()))
+    print('And Therefore {} Trips found'.format(str(cluster_df['Cluster_Begin_End_Number'].sum()/2)))
+
+
+    coeffs = loadmat('Data/geo_coeffs.mat')
+    coeffs = np.array(coeffs['geo_coeffs'])
+
+    m = folium.Map([51.4545, -2.58], zoom_start=13)
+       
+    print('plotting clusters')
+
+    for cluster_origin in range(1,293):
+        
+        cluster_origin_info = cluster_df[cluster_df['Cluster_ID']==cluster_origin]
+        #print(cluster_origin_info)
+        
+        origin_lat = float(cluster_origin_info['Cluster_Lat'])
+        origin_lng = float(cluster_origin_info['Cluster_Lng'])
+        #bikes_leaving_cluster = int(cluster_origin_info['Cluster_Begin_Number'])
+        #bikes_arriving_cluster = int(cluster_origin_info['Cluster_End_Number'])
+        
+        #total = bikes_arriving_cluster + bikes_leaving_cluster
+
+        coeff = coeffs[cluster_origin-1,1]
+            
+               
+        trip_start_and_ends = float(cluster_origin_info['Cluster_Begin_End_Number'])
+        radius = min(20,20*np.sqrt((abs(trip_start_and_ends)/3000)))
+        
+        if coeff > 0.1:
+            print(cluster_origin, coeff, radius, trip_start_and_ends)
+            
+            html =  generateDecayHTML(cluster_origin, trip_start_and_ends, origin_lat, origin_lng)
+           
+         
+            folium.CircleMarker(location=[origin_lat, origin_lng],
+                                radius=radius,
+                                color='#3186cc',
+                                fill=True,
+                                popup = html,
+                                fill_opacity = 0.5).add_to(m)
+            folium.Marker([origin_lat, origin_lng],
+                          icon=DivIcon(
+                          icon_size=(150,36),
+                          icon_anchor=(0,0),
+                          html='<div style="font-size: 12pt; font-weight: bold">{}</div>'.format(str(cluster_origin)),
+                                )
+                          ).add_to(m)
+                        
+    print('calculating polygons')
+
+    points = [[float(cluster['Cluster_Lat']), float(cluster['Cluster_Lng'])] for ind, cluster in cluster_df.iterrows()]
+    vor = Voronoi(points)
+    print('drawing polygons')
+    bristol_centre = ((51.454514, -2.587910))
+    for vpair in vor.ridge_vertices:
+        if vpair[0] >= 0 and vpair[1] >= 0:
+            v0 = vor.vertices[vpair[0]]
+            v1 = vor.vertices[vpair[1]]
+            v0 = [float(v) for v in v0]
+            v1 = [float(v) for v in v1]
+            if vincenty(v0, bristol_centre).km < 10 and vincenty(v1, bristol_centre).km < 10:
+            # Draw a line from v0 to v1.
+                folium.PolyLine(([v0,v1]), opacity = 0.4, color='#101010').add_to(m)
+    
+    m.save('Maps/ClusterDecayCoeffs.html') 
+    
 
 def plotClusterDifferences():
     
@@ -439,8 +525,9 @@ def main():
     #plotUsedRoads(df)
     #plotDifferenecesonMap()
     #plotClusterAndPolygons()
-    plotClusterDifferences()
+    #plotClusterDifferences()
     #plotLinksBetweenClusters()
+    plotClusterDecays()
 
 if __name__ == '__main__':
     main()
